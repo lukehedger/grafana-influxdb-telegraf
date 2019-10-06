@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:6.4.1
+    networks:
+      - influxdb
+    ports:
+      - 3000:3000
+    volumes:
+      - type: volume
+        source: grafana
+        target: /var/lib/grafana
+  influxdb:
+    container_name: influxdb
+    environment:
+      INFLUXDB_DB: telegraf
+      INFLUXDB_USER: telegraf
+      INFLUXDB_USER_PASSWORD: metrics
+    image: influxdb:1.5.4-alpine
+    networks:
+      - influxdb
+    ports:
+      - 8086:8086
+    volumes:
+      - type: volume
+        source: influxdb
+        target: /var/lib/influxdb
+  telegraf:
+    container_name: telegraf
+    depends_on:
+      - influxdb
+    image: telegraf:1.10.4-alpine
+    networks:
+      - influxdb
+    ports:
+      - 8083:8083
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+networks:
+  influxdb:
+
+volumes:
+  grafana:
+  influxdb:
